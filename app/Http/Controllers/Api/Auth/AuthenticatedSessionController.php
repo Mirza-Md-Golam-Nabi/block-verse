@@ -1,11 +1,10 @@
 <?php
-
 namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 
 class AuthenticatedSessionController extends Controller
@@ -13,26 +12,32 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): Response
+    public function store(LoginRequest $request): JsonResponse
     {
         $request->authenticate();
 
-        $request->session()->regenerate();
+        $credentials = $request->only('email', 'password');
 
-        return response()->noContent();
+        $auth = Auth::attempt($credentials);
+
+        if ($auth) {
+            $user = Auth::user();
+
+            $user['api_token']  = $user->createToken('BlockVerseTest')->accessToken;
+            $user['token_type'] = "Bearer";
+
+            return formatResponse(0, 200, 'You are logged in', $user);
+        } else {
+            return formatResponse(1, 200, 'Password and Phone number do not match', null);
+        }
     }
 
     /**
      * Destroy an authenticated session.
      */
-    public function destroy(Request $request): Response
+    public function destroy(Request $request): JsonResponse
     {
-        Auth::guard('web')->logout();
-
-        $request->session()->invalidate();
-
-        $request->session()->regenerateToken();
-
-        return response()->noContent();
+        $request->user()->token()->revoke();
+        return formatResponse(0, 200, "Successfully logged out", null);
     }
 }
