@@ -1,8 +1,9 @@
 <?php
-
 namespace App\Providers;
 
+use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -21,7 +22,16 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         ResetPassword::createUrlUsing(function (object $notifiable, string $token) {
-            return config('app.frontend_url')."/password-reset/$token?email={$notifiable->getEmailForPasswordReset()}";
+            return config('app.frontend_url') . "/password-reset/$token?email={$notifiable->getEmailForPasswordReset()}";
         });
+
+        Gate::define('admin', fn(User $user) => $user->hasRole('admin'));
+        Gate::define('author', fn(User $user) => $user->hasRole('author'));
+        Gate::define('publish-article', fn(User $user) => $user->hasRole('admin') || $user->hasRole('editor'));
+        Gate::define('view-published', fn(User $user) => $user !== null);
+        Gate::define('create-article', fn(User $user) => $user !== null);
+        Gate::define('edit-article', fn(User $user) => $user !== null);
+        Gate::define('delete-article', fn(User $user) => $user->hasRole('admin'));
+
     }
 }
