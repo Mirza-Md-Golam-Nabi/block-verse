@@ -1,6 +1,7 @@
 <?php
 namespace Database\Seeders;
 
+use App\Models\RoleUser;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Database\Seeders\RoleSeeder;
@@ -20,5 +21,10 @@ class DatabaseSeeder extends Seeder
 
         $this->call(UserSeeder::class);
         $this->call(RoleSeeder::class);
+
+        RoleUser::create([
+            'user_id' => 1,
+            'role_id' => 1,
+        ]);
     }
 }

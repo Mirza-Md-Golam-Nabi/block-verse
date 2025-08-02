@@ -16,7 +16,7 @@ class UserService
 
     public function getProfile(): User
     {
-        return authUser();
+        return authUser()->load('roles');
     }
 
     public function assignRole(string $role, int $id): User
